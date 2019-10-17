@@ -1,6 +1,17 @@
 #EULER
 #https://bitbucket.org/hubwag/chunkyeuler/src/master/ for details
-#For each nucleus generate the Euler characteristic curve as follows:
-parallel "python /home/garner1/Work/pipelines/euler/chunkyeuler/scripts/image_stack_to_raw.py {}" ::: ~/Work/dataset/dataset_patient52/iM*.jpg
-parallel "/home/garner1/Work/pipelines/euler/chunkyeuler/build/CHUNKYEuler -f {} -s '1024 1024 1'" ::: /home/garner1/Work/dataset/dataset_patient52/iM*.raw
-parallel "python /home/garner1/Work/pipelines/euler/chunkyeuler/scripts/plotEuler.py {}" ::: /home/garner1/Work/dataset/dataset_patient52/*.raw.euler
+#For each nucleus image ${img}.jpg generate the Euler characteristic curve as follows:
+
+#this create the raw file fromt the jpg file
+python /home/garner1/Work/pipelines/euler/chunkyeuler/scripts/image_stack_to_raw.py ~/Work/dataset/dataset_patient52/${img}.jpg
+
+#generate the Euler characteristic curve
+/home/garner1/Work/pipelines/euler/chunkyeuler/build/CHUNKYEuler -p 1 -f ${img}.jpg_t_u8_1024x1024.from_stack.raw -s '1024 1024 1'
+
+#reformat the Euler characteristic file to include of 256 x values
+t=( $(cut -d' ' -f1 ${img}.jpg_t_u8_1024x1024.from_stack.raw.euler | /usr/local/share/anaconda2/bin/datamash transpose) )
+c=( $(cut -d' ' -f2 ${img}.jpg_t_u8_1024x1024.from_stack.raw.euler | /usr/local/share/anaconda2/bin/datamash transpose) )
+t+=(256);for i in $(seq 1 $t[-1]); do for j in $(seq $t[$i] $(( $t[$i+1]-1 )));do print $j $c[$i];done;done > ${img}.jpg_t_u8_1024x1024.from_stack.raw.euler
+
+#generate the plot of the curve if needed
+python /home/garner1/Work/pipelines/euler/chunkyeuler/scripts/plotEuler.py ${img}.jpg_t_u8_1024x1024.from_stack.raw.euler
