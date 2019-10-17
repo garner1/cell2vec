@@ -1,0 +1,6 @@
+#EULER
+#https://bitbucket.org/hubwag/chunkyeuler/src/master/ for details
+#For each nucleus generate the Euler characteristic curve as follows:
+parallel "python /home/garner1/Work/pipelines/euler/chunkyeuler/scripts/image_stack_to_raw.py {}" ::: ~/Work/dataset/dataset_patient52/iM*.jpg
+parallel "/home/garner1/Work/pipelines/euler/chunkyeuler/build/CHUNKYEuler -f {} -s '1024 1024 1'" ::: /home/garner1/Work/dataset/dataset_patient52/iM*.raw
+parallel "python /home/garner1/Work/pipelines/euler/chunkyeuler/scripts/plotEuler.py {}" ::: /home/garner1/Work/dataset/dataset_patient52/*.raw.euler
